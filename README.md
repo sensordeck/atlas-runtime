@@ -1,220 +1,454 @@
 # Atlas Runtime
 
-Atlas Runtime Governance Infrastructure for robotics and autonomous systems.
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
+[![Phase](https://img.shields.io/badge/Phase-Public%20Baseline-green.svg)](./RELEASE_SCOPE.md)
+[![Platform](https://img.shields.io/badge/Platform-ROS2%20%7C%20Linux%20%7C%20Jetson-lightgrey.svg)](./docs/specifications/)
+[![Architecture](https://img.shields.io/badge/Architecture-Runtime%20Governance-orange.svg)](./docs/architecture/)
 
-Atlas Runtime introduces a deterministic runtime governance layer designed to improve replay visibility, authority boundary validation, limitation preservation, and runtime evidence integrity across heterogeneous robotics platforms.
+<p align="center">
+  <img src="./assets/diagrams/atlas_runtime_governance_architecture.png" width="100%" alt="Atlas Runtime Timing Governance Infrastructure">
+</p>
 
-Unlike traditional synchronization utilities or middleware adapters, Atlas Runtime focuses on runtime trustworthiness under real deployment conditions — including replay admissibility, authority transitions, degraded timing states, and deterministic evidence generation.
+Atlas Runtime is a runtime timing governance infrastructure for robotics and autonomous systems.
+
+In simple terms:
+
+Atlas helps engineering teams determine whether runtime timing behavior remains trustworthy during real deployment conditions.
+
+Atlas does **not** replace your synchronization stack, middleware, ROS architecture, or timing infrastructure.
+
+Instead, Atlas operates on top of existing systems to make runtime timing behavior:
+
+- observable
+- replay-traceable
+- externally verifiable
+- investigation-friendly
+
+without requiring:
+
+- code changes
+- middleware replacement
+- production downtime
+- system rewrites
+
+Atlas Runtime achieves this through replay-backed runtime evidence generation.
+
+Every governance claim is intended to remain traceable to replay-verifiable runtime slices.
 
 ---
 
 # Why Atlas Runtime Exists
 
-Modern robotics systems assume that:
+Modern robotics systems increasingly depend on:
 
-- timestamps are trustworthy
-- replay behavior is deterministic
-- synchronization failures are externally visible
-- runtime limitations are preserved across logs and reports
+- GNSS / PPS timing
+- PTP / IEEE 1588
+- hardware timestamps
+- sensor fusion timing
+- ROS2 runtime behavior
+- replay-driven debugging
+- deterministic runtime assumptions
 
-In practice, these assumptions frequently fail.
+But in real deployment environments, runtime timing behavior often becomes difficult to explain, verify, or reproduce.
+
+Common examples include:
+
+## Same rosbag, different replay results
+
+A bag replay behaves differently on different days or machines.
+
+Engineering teams lose confidence in replay results.
+
+---
+
+## GNSS recovered, but localization still drifts
+
+The PPS signal returns, but runtime timing behavior remains unstable.
+
+---
+
+## Timing degradation becomes invisible
+
+Synchronization quality silently degrades during runtime.
+
+---
+
+## Runtime failures cannot be reproduced
+
+A field issue happens once and disappears.
+
+---
+
+## OEM and supplier logs disagree
+
+Different teams provide different runtime evidence.
+
+Nobody can determine:
+
+- what actually happened
+- whether replay remains trustworthy
+- which runtime windows remain admissible
+
+---
+
+# What Atlas Runtime Does
+
+Atlas Runtime helps engineering teams investigate runtime timing behavior under real deployment conditions.
+
+> These capabilities directly address the runtime problems described above.
+
+## Replay Visibility Analysis
+
+Determines whether runtime behavior remains replay-traceable under deterministic replay conditions.
+
+Outputs include:
+
+- replay admissibility state
+- replay visibility windows
+- replay limitation disclosures
+- runtime evidence timelines
+
+Specification:
+
+- [Replay Visibility Specification](./docs/specifications/replay_visibility_spec.md)
+
+---
+
+## Authority Transition Tracking
+
+Tracks runtime timing authority transitions including:
+
+- PPS lock
+- PPS recovery
+- holdover
+- degraded synchronization
+- non-authoritative runtime operation
+
+Specification:
+
+- [Authority Boundary Specification](./docs/specifications/authority_boundary_spec.md)
+
+---
+
+## Runtime Evidence Generation
+
+Generates replay-backed runtime evidence packages for:
+
+- engineering investigation
+- QA reproducibility
+- supplier/OEM comparison
+- deployment validation
+- runtime governance review
+
+Typical outputs include:
+
+```text
+evidence/
+├── replay_report.html
+├── evidence_windows.json
+├── runtime_timeline.png
+├── limitation_disclosure.json
+└── metadata.json
+```
+
+Example schema:
+
+```json
+{
+  "replay_id": "replay_20260527_001",
+  "admissibility": "ADMISSIBLE",
+  "windows": [
+    {
+      "type": "BASELINE_DEVIATION_WINDOW",
+      "start_us": 1234567890,
+      "end_us": 1234567900,
+      "limitations": [
+        "root_cause_not_determined"
+      ]
+    }
+  ]
+}
+```
+
+Specification:
+
+- [Runtime Evidence Specification](./docs/specifications/runtime_evidence_spec.md)
+
+---
+
+## Drift & Deviation Observation
+
+Observes runtime timing drift and deviation across runtime windows.
 
 Examples include:
 
-- GNSS recovery drift after signal restoration
-- Linux scheduler-induced timing nondeterminism
-- replay divergence between identical runtime captures
-- invisible timing degradation during sensor fusion
-- runtime failures that cannot be reproduced during investigation
-
-Atlas Runtime provides infrastructure for making these runtime conditions externally observable, replay-visible, and governance-auditable.
+- PPS recovery instability
+- clock drift accumulation
+- runtime timing divergence
+- baseline deviation detection
 
 ---
 
-# Core Capabilities
+## Runtime Comparison Workflows
 
-## Replay Visibility
+Supports comparison between:
 
-Atlas Runtime establishes deterministic replay visibility boundaries for runtime events, authority transitions, and synchronization degradation.
-
-The system distinguishes between:
-
-- replay-visible events
-- non-replay-visible runtime conditions
-- admissible replay evidence
-- limitation-preserving evidence
+- runtime sessions
+- deployment environments
+- baseline recordings
+- supplier/OEM runtime evidence
+- future Reference Domain runtime baselines
 
 ---
 
-## Authority Boundary Validation
+# Atlas Runtime Is NOT
 
-Atlas Runtime defines explicit runtime authority boundaries between:
+Atlas Runtime is not:
 
-- GNSS/PPS authority
-- deterministic holdover authority
-- non-authoritative Linux/runtime clocks
+- ❌ a ROS bag replay tool
+- ❌ a time synchronization protocol
+- ❌ a middleware replacement
+- ❌ a logging dashboard
+- ❌ a generic observability platform
+- ❌ a sensor fusion framework
+- ❌ a replacement for OEM timing infrastructure
 
-This enables external validation of synchronization trustworthiness during runtime transitions.
-
----
-
-## Runtime Evidence Infrastructure
-
-Atlas Runtime produces structured runtime evidence for:
-
-- engineering analysis
-- QA reproducibility
-- supplier dispute resolution
-- pilot deployment validation
-- governance auditability
+Atlas operates above existing systems as a runtime timing governance layer.
 
 ---
 
-## Limitation Preservation
+# Technical Architecture
 
-Atlas Runtime preserves runtime limitations as first-class governance artifacts.
-
-The infrastructure is designed to prevent:
-
-- hidden replay gaps
-- silent synchronization degradation
-- overstated deterministic claims
-- report-level semantic drift
-
----
-
-## Cross-SKU Runtime Governance
-
-Atlas Runtime is designed to support governance visibility across:
-
-- multiple robotics SKUs
-- heterogeneous sensor stacks
-- distributed deployment environments
-- long-running field systems
-
----
-
-# Repository Scope
-
-This repository contains the public runtime governance baseline for Atlas Runtime.
-
-Included:
-
-- runtime governance specifications
-- replay semantics
-- authority boundary definitions
-- runtime evidence structures
-- governance baseline documents
-- launch release artifacts
-
-This repository intentionally does not contain:
-
-- private governance infrastructure
-- internal certification semantics
-- restricted deployment tooling
-- confidential customer artifacts
-- immutable engineering vault archives
-
----
-
-# Repository Structure
+Atlas Runtime runs alongside existing robotics systems as a sidecar-style runtime governance layer.
 
 ```text
-docs/
-    Runtime governance specifications and constitutions
-
-launch/
-    Public launch artifacts and executive materials
-
-releases/
-    Runtime release packages and release manifests
-
-runtime/
-    Validation packages, runtime manifests, and limitations
-
-examples/
-    Example runtime governance workflows
-
-scripts/
-    Runtime validation and release tooling
+┌─────────────────────────────────────────┐
+│           Robot Runtime Process         │
+│                                         │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐    │
+│  │ Node A  │ │ Node B  │ │ Node C  │    │
+│  └────┬────┘ └────┬────┘ └────┬────┘    │
+│       └───────────┼───────────┘         │
+│                   │ DDS / ROS2          │
+└───────────────────┼─────────────────────┘
+                    │
+                    ▼
+┌─────────────────────────────────────────┐
+│         Atlas Runtime (Sidecar)         │
+│                                         │
+│ Observation → Analysis → Evidence       │
+│                                         │
+└─────────────────────────────────────────┘
 ```
+
+Current public baseline architecture includes:
+
+- ROS2/DDS runtime observation
+- timestamp correlation
+- replay visibility analysis
+- authority state tracking
+- runtime deviation analysis
+- runtime evidence generation
+
+Current deployment assumptions:
+
+- Linux runtime environment
+- ROS2-based systems
+- x86 / ARM / Jetson-compatible
+- non-invasive deployment workflow
+
+---
+
+# Performance Characteristics
+
+Verified on:
+
+- Jetson Orin
+- x86_64 (Intel i7)
+- ARM64 platforms
+
+Current baseline targets:
+
+| Metric | Target |
+|---|---|
+| Runtime overhead | <1% CPU |
+| Memory footprint | <50MB |
+| Deployment model | Sidecar / non-invasive |
+| Runtime modification required | None |
+| Middleware replacement required | None |
+| Hardware modification required | None |
+
+Measured on reference platforms. Results may vary with configuration.
+
+---
+
+# Quick Start
+
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/sensordeck/atlas-runtime.git
+cd atlas-runtime
+```
+
+---
+
+## 2. Run Example Runtime Analysis
+
+```bash
+./scripts/validate_replay.sh --input ./examples/sample_recording.bag
+```
+
+Example output:
+
+```text
+Replay Visibility Result: ADMISSIBLE
+Authority State: HOLDOVER
+Runtime Drift Window: DETECTED
+
+Evidence written to:
+./output/evidence_2026-05-27/
+
+├── replay_report.html
+├── evidence_windows.json
+├── runtime_timeline.png
+└── limitation_disclosure.json
+```
+
+No code changes required.
+
+No middleware replacement required.
+
+No hardware modifications required.
+
+---
+
+## 3. Explore Runtime Examples
+
+Examples are available under:
+
+```text
+examples/
+```
+
+Including:
+
+- replay visibility examples
+- runtime deviation examples
+- controlled runtime events
+- runtime comparison workflows
+- limitation-preserving investigation examples
 
 ---
 
 # Documentation
 
-## Core Specifications
+## Runtime Governance
 
-- `docs/protocol_spec.md`
-- `docs/replay_spec.md`
-- `docs/authority_boundary_spec.md`
-- `docs/evidence_chain_spec.md`
-- `docs/time_model_v0_1.md`
-
-## Governance
-
-- `docs/constitution/`
-- `docs/roadmap/`
+- [Runtime Timing Governance](./docs/governance/runtime_timing_governance.md)
+- [Runtime Truth Model](./docs/governance/runtime_truth_model.md)
+- [Deterministic Claims](./docs/governance/deterministic_claims.md)
 
 ---
 
-# Runtime Governance Concepts
+## Runtime Specifications
 
-## Replay Visibility
-
-Replay visibility defines whether a runtime condition remains externally reproducible and governance-traceable during deterministic replay.
-
----
-
-## Authority Boundary
-
-Authority boundaries define transitions between authoritative and non-authoritative runtime timing domains.
+- [Replay Visibility Specification](./docs/specifications/replay_visibility_spec.md)
+- [Authority Boundary Specification](./docs/specifications/authority_boundary_spec.md)
+- [Runtime Evidence Specification](./docs/specifications/runtime_evidence_spec.md)
 
 ---
 
-## Limitation Preservation
+## Architecture
 
-Atlas Runtime treats runtime limitations as governance-preserving artifacts rather than implementation defects to be hidden.
-
----
-
-## Deterministic Runtime Evidence
-
-Deterministic runtime evidence refers to runtime artifacts that remain replay-admissible under governance-preserving replay conditions.
+- [System Architecture](./docs/architecture/atlas_system_architecture.md)
+- [Runtime Engine Architecture](./docs/architecture/runtime_engine_architecture.md)
+- [Power + Timing Architecture](./docs/architecture/power_timing_architecture.md)
 
 ---
 
-# Runtime Release
+# ROS2 Support Matrix
 
-Current runtime release baseline:
+| ROS2 Distro | Support Level |
+|---|---|
+| Humble | ✅ Supported |
+| Iron | ✅ Supported |
+| Rolling | 🟡 Experimental |
+| Foxy | ⏳ Planned |
+
+---
+
+# FAQ
+
+Common questions:
+
+- [How is Atlas different from rosbag replay tools?](./docs/faq.md#vs-rosbag)
+- [Does Atlas replace PTP or GNSS synchronization?](./docs/faq.md#sync)
+- [Does Atlas require hardware changes?](./docs/faq.md#hardware)
+- [Can Atlas determine root cause automatically?](./docs/faq.md#root-cause)
+- [What ROS2 distributions are supported?](./docs/faq.md#ros2)
+- [What hardware platforms are supported?](./docs/faq.md#platforms)
+- [Are evidence package schemas versioned?](./docs/faq.md#schema)
+
+See the [full FAQ](./docs/faq.md).
+
+---
+
+# Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for:
+
+- adding governance rules
+- extending evidence schemas
+- submitting runtime examples
+- contributing replay visibility workflows
+
+---
+
+# Release Status
+
+Current public baseline:
 
 ```text
-releases/runtime/atlas-runtime-v1/
+Atlas Runtime Public Governance Baseline
 ```
 
-Release scope:
+Current release scope includes:
 
-```text
-RELEASE_SCOPE.md
-```
+- replay visibility semantics
+- runtime evidence structures
+- authority boundary definitions
+- runtime investigation workflows
+- deterministic replay boundaries
+- limitation-preserving evidence concepts
 
-Acceptance baseline:
+Release details:
 
-```text
-ACCEPTANCE_BASELINE.md
-```
+- [Release Scope](./RELEASE_SCOPE.md)
+- [Acceptance Baseline](./ACCEPTANCE_BASELINE.md)
 
 ---
 
-# Current Status
+# Optional: Atlas Reference Domain
 
-Current repository phase:
+Atlas Runtime can optionally operate with Atlas Reference Domain infrastructure.
+
+Reference Domain infrastructure adds:
+
+- independent runtime observation
+- independent timing validation
+- runtime comparison baselines
+- power + timing governance visibility
+
+This enables advanced workflows such as:
 
 ```text
-Launch Week Governance Baseline
+Verified Sensor Runtime
+        ↕
+OEM Runtime Evidence
+        ↕
+Reference Runtime Domain
 ```
-
-Atlas Runtime is currently transitioning from engineering freeze toward canonical runtime governance release infrastructure.
 
 ---
 
@@ -223,11 +457,14 @@ Atlas Runtime is currently transitioning from engineering freeze toward canonica
 Atlas Runtime is intended for:
 
 - robotics platform engineers
+- runtime validation teams
 - autonomy infrastructure teams
-- runtime validation engineers
+- replay investigation engineers
 - systems integration teams
-- technical governance stakeholders
-- replay and synchronization investigators
+- robotics OEM engineering teams
+- sensor suppliers
+- runtime certification participants
+- runtime infrastructure architects
 
 ---
 
@@ -236,9 +473,3 @@ Atlas Runtime is intended for:
 Apache License 2.0
 
 See `LICENSE` for details.
-
----
-
-# Atlas Runtime
-
-Runtime Governance Infrastructure for deterministic replay visibility and authority-aware runtime evidence.
